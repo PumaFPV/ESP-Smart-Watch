@@ -7,7 +7,12 @@
 //#include <MAX30105.h>
 //#include "heartrate.h" 
 
-
+/*
+ SimpleKalmanFilter(e_mea, e_est, q);
+ e_mea: Measurement Uncertainty 
+ e_est: Estimation Uncertainty 
+ q: Process Noise
+ */
 
 SimpleKalmanFilter pressureKalmanFilter(0.1, 0.02, 0.01);
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
@@ -41,6 +46,7 @@ double getPressure() {
   } 
 }
 
+double altitudeOffset, calibratedAltitude;
 
 //---------------------------------------------Cardio---------------------------------------------
 /*
@@ -154,18 +160,25 @@ void loop(){
   }
 
 
-
+  if(touchRead(T0) < 80){
+    altitudeOffset = estimated_altitude;
+    Serial.println("Calibrated");
+  }
 
   if (millis() > refresh_time) {
-    Serial.print(estimated_altitude,6);
+    Serial.print(calibratedAltitude,6);
     Serial.println();
     refresh_time = millis() + SERIAL_REFRESH_TIME;
+    calibratedAltitude = estimated_altitude - altitudeOffset;
 
      u8g2.firstPage();
   do {
     u8g2.setFont(u8g2_font_ncenB14_tr);
-    u8g2.setCursor(0, 20);
-    u8g2.print(estimated_altitude);
+    u8g2.setCursor(0, 16);
+    u8g2.print(calibratedAltitude);
+    u8g2.setCursor(0, 32);
+    u8g2.print(gps.satellites.value());
+    
   } 
   while ( 
     u8g2.nextPage() 
