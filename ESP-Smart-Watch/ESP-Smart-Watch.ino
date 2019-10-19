@@ -1,11 +1,11 @@
-#include <Arduino.h>
+/*#include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
-#include <BMP180.h>
+#include <SFE_BMP180.h>
 #include <TinyGPS++.h>
 #include <SimpleKalmanFilter.h>
-#include "MAX30105.h"
-#include "heartrate.h"
+#include <MAX30105.h>
+#include "heartrate.h" */
 
 
 
@@ -15,7 +15,6 @@
 #include "Barometer.h"
 #include "CLock.h"
 #include "Cardio.h"
-#include "KalmanFilter.h"
 #include "OLED.h"
 
 

@@ -1,7 +1,3 @@
-#include "KalmanFilter.h"
-
-
-
 void ScreenSetup(){
   
   u8g2.begin();
@@ -12,10 +8,10 @@ void ScreenSetup(){
 
 void ScreenLoop(){
   
-  if (millis() > refresh_time) {
+  if (millis() > Brefresh_time) {
     Serial.print(estimated_altitude,6);
     Serial.println();
-    refresh_time = millis()+SERIAL_REFRESH_TIME;
+    Brefresh_time = millis() + BSERIAL_REFRESH_TIME;
 
      u8g2.firstPage();
   do {

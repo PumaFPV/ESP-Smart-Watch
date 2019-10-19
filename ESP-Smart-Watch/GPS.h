@@ -1,5 +1,3 @@
-
-
 int totalTrip, previousTotalTrip, previousGPSLat, previousGPSLng;
 int currentAlt, previousAlt, previousUpHill, currentUpHill;
 int minGPSSpeed, maxGPSSpeed, avgGPSSpeed, previousAvgGPSSpeed, currentGPSSpeed;

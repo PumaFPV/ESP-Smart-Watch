@@ -1,80 +1,71 @@
-#define BuzzerPin 1
-
-#define minVario  -5
-#define maxVario  5
-#define minFreq 100
-#define maxFreq 12000
-#define minTime 100
-#define maxTime 2000
-#define IntervalOneSec 1000
-#define IntervalNeutral 5000  
-
-int VarioOneSec, VarioNeutral = 0;
-unsigned long PreviousMillisOneSec, PreviousMillisNeutral = 0;
-int cycle = 0;
-int SumAlti = 0;
-int AverageAlti = 0;
+//#include <SimpleKalmanFilter.h>
+//#include <SFE_BMP180.h>
 
 
-void BaroSetup(){
-  
-  bmp180.begin();
-  
+/*
+ This sample code demonstrates how the SimpleKalmanFilter object can be used with a
+ pressure sensor to smooth a set of altitude measurements. 
+ This example needs a BMP180 barometric sensor as a data source.
+ https://www.sparkfun.com/products/11824
+
+ SimpleKalmanFilter(e_mea, e_est, q);
+ e_mea: Measurement Uncertainty 
+ e_est: Estimation Uncertainty 
+ q: Process Noise
+ */
+
+
+// Serial output refresh time
+const long BSERIAL_REFRESH_TIME = 100;
+long Brefresh_time;
+
+float baseline; // baseline pressure
+
+double getPressure() {
+  char status;
+  double T,P;
+  status = bmp.startTemperature();
+  if (status != 0) {
+    delay(status);
+    status = bmp.getTemperature(T);
+    if (status != 0) {
+      status = bmp.startPressure(3);
+      if (status != 0) {
+        delay(status);
+        status = bmp.getPressure(P,T);
+        if (status != 0) {
+          return(P);
+        }
+      } 
+    }  
+  } 
 }
 
+void setup() {
 
-void GetData(){
-  if(bmp180.read()){
-    //Serial.println((String) "Pression= " + bmp.pres + "     Temperature= " + bmp.temp + "      Altitude= " + bmp.alti);
-    //Serial.println(bmp.alti);
+  Serial.begin(115200);
+
+  // BMP180 Pressure sensor start
+  if (!bmp.begin()) {
+    Serial.println("BMP180 Pressure Sensor Error!");
+    while(1); // Pause forever.
   }
-  else{
-    Serial.println("Pas de données capteur");
-  }
+  baseline = getPressure();
+ 
 }
 
-void ProcessData(){
+void loop() {
   
-  int CurrentAltitude = bmp180.alti;
-  unsigned long CurrentMillis = millis();
+  float p = getPressure();
+  float altitude = bmp.altitude(p,baseline);
+  float estimated_altitude = pressureKalmanFilter.updateEstimate(altitude);
 
-  /*
-  if(CurrentMillis - PreviousMillisOneSec >= IntervalOneSec){
-    PreviousMillisOneSec = CurrentMillis;
-
-    int RealVarioOneSec = CurrentAltitude - bmp.alti;
-    VarioOneSec = constrain(RealVarioOneSec, minVario, maxVario);
-    Serial.print(VarioOneSec);
+  if (millis() > Brefresh_time) {
+    Serial.print(altitude,6);
+    Serial.print(",");
+    Serial.print(estimated_altitude,6);
+    Serial.println();
+    Brefresh_time = millis()+ 100;
   }
-
-  if(CurrentMillis - PreviousMillisNeutral >= IntervalNeutral){
-    PreviousMillisNeutral = CurrentMillis;
-
-    int RealVarioNeutral = CurrentAltitude- bmp.alti;
-    VarioNeutral = constrain(RealVarioNeutral, minVario, maxVario);
-    Serial.print(VarioNeutral);
-  }*/
-
-  for(int i = 0; i < 60; i++){
-    SumAlti = SumAlti + bmp180.alti; 
-  }
-  AverageAlti = SumAlti/60;
-  Serial.print(bmp180.alti);
-  Serial.print("      ");
-  Serial.println(AverageAlti);
-}
-
-void OutputBuzzer(){
-  int BuzzerFreq = map(VarioOneSec, minVario, maxVario, minFreq, maxFreq);
-  int BuzzerTime = map(VarioOneSec, minVario, maxVario, maxTime, minTime);
-  //tone(BuzzerPin, BuzzerFreq, BuzzerTime);  
-}
-
-
-void BaroLoop(){
-  
-  GetData();
-  ProcessData();
-  OutputBuzzer();
   
 }
