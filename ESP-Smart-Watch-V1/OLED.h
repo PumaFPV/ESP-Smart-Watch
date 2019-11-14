@@ -8,10 +8,10 @@ void ScreenSetup(){
 
 void ScreenLoop(){
   
-  if (millis() > Brefresh_time) {
+  if (millis() > refresh_time) {
     Serial.print(estimated_altitude,6);
     Serial.println();
-    Brefresh_time = millis() + BSERIAL_REFRESH_TIME;
+    refresh_time = millis() + SERIAL_REFRESH_TIME;
 
      u8g2.firstPage();
   do {
