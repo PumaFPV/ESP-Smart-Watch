@@ -7,7 +7,6 @@ BMP180 baro;
 SimpleKalmanFilter Baro(0.1, 0.02, 0.01);
 SimpleKalmanFilter Vario(0.1, 0.02, 0.01);
 
-
 #define VARIO_PWR true
 #define BUZZER_PIN 33
 #define DEBUG_VARIO true
@@ -22,8 +21,8 @@ SimpleKalmanFilter Vario(0.1, 0.02, 0.01);
 #define MAX_TIME  100
 
 float baseline; // baseline pressure
-  int VarioFreq, VarioTime;
-  float deltaAlt = 0.00;  
+int VarioFreq, VarioTime;
+float deltaAlt = 0.00;  
 
 
 void setup() {
@@ -35,7 +34,6 @@ void setup() {
   tone(BUZZER_PIN, 880, 500, 0);
   noTone(BUZZER_PIN);
 
-  delay(2000);
 }
 
 void loop(){

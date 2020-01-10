@@ -34,7 +34,6 @@ void setup(){
 //xTaskCreatePinnedToCore(Function, Task name, Stack size, parameter as input, priority 3 highest, task handle, core0 = wifi);
   xTaskCreatePinnedToCore(VarioCode, "Vario", 1024, NULL, 3, NULL, 1); //Function, Task name, Stack size, parameter as input, priority 3 highest, task handle, core (0 = wifi)
 
-
 }
 
 
