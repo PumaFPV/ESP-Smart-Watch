@@ -1,8 +1,6 @@
 #include <TinyGPS++.h>
-#include <HardwareSerial.h>
 
-TinyGPSPlus gps;
-HardwareSerial SerialGPS(2);  
+TinyGPSPlus gps;  
 
 int totalTrip, previousTotalTrip, previousGPSLat, previousGPSLng;
 int currentAlt, previousAlt, previousUpHill, currentUpHill;
@@ -94,10 +92,11 @@ void GPSClock(){
 
 void setup(){
   Serial.begin(115200);
-  SerialGPS.begin(9600, SERIAL_8N1, 16 ,17);
+  Serial2.begin(9600);
 }
 
 void loop(){
+      Serial.println(gps.satellites.value());
   if(gps.satellites.value() > 4){
     TotalDistance(); 
     UpHill(); 
