@@ -1,16 +1,57 @@
-#include <Wire.h>
-#include <Tone32.h>
-#include <BMP180.h>
-#include <SimpleKalmanFilter.h>
-#include <TinyGPS++.h>
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
+void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
+void createDir(fs::FS &fs, const char * path);
+void removeDir(fs::FS &fs, const char * path);
+void readFile(fs::FS &fs, const char * path);
+void writeFile(fs::FS &fs, const char * path, const char * message);
+void appendFile(fs::FS &fs, const char * path, const char * message);
+void renameFile(fs::FS &fs, const char * path1, const char * path2);
+void deleteFile(fs::FS &fs, const char * path);
+void testFileIO(fs::FS &fs, const char * path);
 
-BMP180 baro;
-SimpleKalmanFilter Baro(0.1, 0.02, 0.01);
-SimpleKalmanFilter Vario(0.1, 0.02, 0.01);
-TinyGPSPlus gps;
+
+
+void SDCode(void *pvParameters){
+    if(!SD.begin(4)){
+        //Serial.println("Card Mount Failed");
+    }
+    uint8_t cardType = SD.cardType();
+
+    if(cardType == CARD_NONE){
+        Serial.println("No SD card attached");
+    }
+
+    Serial.print("SD Card Type: ");
+    if(cardType == CARD_MMC){
+        Serial.println("MMC");
+    } else if(cardType == CARD_SD){
+        Serial.println("SDSC");
+    } else if(cardType == CARD_SDHC){
+        Serial.println("SDHC");
+    } else {
+        Serial.println("UNKNOWN");
+    }
+
+    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+    Serial.printf("SD Card Size: %lluMB\n", cardSize);
+
+    listDir(SD, "/", 0);
+    createDir(SD, "/mydir");
+    listDir(SD, "/", 0);
+    removeDir(SD, "/mydir");
+    listDir(SD, "/", 2);
+    writeFile(SD, "/hello.txt", "Hello ");
+    appendFile(SD, "/hello.txt", "World!\n");
+    readFile(SD, "/hello.txt");
+    deleteFile(SD, "/foo.txt");
+    renameFile(SD, "/hello.txt", "/foo.txt");
+    readFile(SD, "/foo.txt");
+    testFileIO(SD, "/test.txt");
+    Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
+
+}
+
+
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     Serial.printf("Listing directory: %s\n", dirname);
@@ -43,6 +84,8 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     }
 }
 
+
+
 void createDir(fs::FS &fs, const char * path){
     Serial.printf("Creating Dir: %s\n", path);
     if(fs.mkdir(path)){
@@ -52,6 +95,8 @@ void createDir(fs::FS &fs, const char * path){
     }
 }
 
+
+
 void removeDir(fs::FS &fs, const char * path){
     Serial.printf("Removing Dir: %s\n", path);
     if(fs.rmdir(path)){
@@ -60,6 +105,8 @@ void removeDir(fs::FS &fs, const char * path){
         Serial.println("rmdir failed");
     }
 }
+
+
 
 void readFile(fs::FS &fs, const char * path){
     Serial.printf("Reading file: %s\n", path);
@@ -77,6 +124,8 @@ void readFile(fs::FS &fs, const char * path){
     file.close();
 }
 
+
+
 void writeFile(fs::FS &fs, const char * path, const char * message){
     Serial.printf("Writing file: %s\n", path);
 
@@ -92,6 +141,8 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
     }
     file.close();
 }
+
+
 
 void appendFile(fs::FS &fs, const char * path, const char * message){
     Serial.printf("Appending to file: %s\n", path);
@@ -109,6 +160,8 @@ void appendFile(fs::FS &fs, const char * path, const char * message){
     file.close();
 }
 
+
+
 void renameFile(fs::FS &fs, const char * path1, const char * path2){
     Serial.printf("Renaming file %s to %s\n", path1, path2);
     if (fs.rename(path1, path2)) {
@@ -118,6 +171,8 @@ void renameFile(fs::FS &fs, const char * path1, const char * path2){
     }
 }
 
+
+
 void deleteFile(fs::FS &fs, const char * path){
     Serial.printf("Deleting file: %s\n", path);
     if(fs.remove(path)){
@@ -126,6 +181,8 @@ void deleteFile(fs::FS &fs, const char * path){
         Serial.println("Delete failed");
     }
 }
+
+
 
 void testFileIO(fs::FS &fs, const char * path){
     File file = fs.open(path);

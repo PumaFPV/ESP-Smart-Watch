@@ -1,5 +1,3 @@
-
-
 #define BUZZER_PIN 33
 #define VARIO_BEEP true
 #define MIN_SCHRESHOLD -90  //in cm
@@ -58,7 +56,7 @@ void VarioCode(void *pvParameters){
       Serial.println();     
     }
   }
-    
+     vTaskDelay(100);
   }
   
 }

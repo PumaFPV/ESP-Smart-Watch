@@ -1,4 +1,3 @@
-//  Variables
 #define ESP32
 
 int pulsePin = 34;                 // Pulse Sensor purple wire connected to analog pin 34 , ADC6
@@ -10,14 +9,44 @@ volatile int IBI = 600;             // int that holds the time interval between 
 volatile boolean Pulse = false;     // "True" when User's live heartbeat is detected. "False" when not a "live beat".
 volatile boolean QS = false;        // becomes true when Arduoino finds a beat.
 
-// SET THE SERIAL OUTPUT TYPE TO YOUR NEEDS
-// PROCESSING_VISUALIZER works with Pulse Sensor Processing Visualizer
-//      https://github.com/WorldFamousElectronics/PulseSensor_Amped_Processing_Visualizer
-// SERIAL_PLOTTER outputs sensor data for viewing with the Arduino Serial Plotter
-//      run the Serial Plotter at 115200 baud: Tools/Serial Plotter or Command+L
-//static int outputType = PROCESSING_VISUALIZER;
+volatile int rate[10];                    // array to hold last ten IBI values
+volatile unsigned long sampleCounter = 0;          // used to determine pulse timing
+volatile unsigned long lastBeatTime = 0;           // used to find IBI
+volatile int P = 512;                     // used to find peak in pulse wave, seeded
+volatile int T = 512;                     // used to find trough in pulse wave, seeded
+volatile int thresh = 530;                // used to find instant moment of heart beat, seeded
+volatile int amp = 0;                   // used to hold amplitude of pulse waveform, seeded
+volatile boolean firstBeat = true;        // used to seed rate array so we startup with reasonable BPM
+volatile boolean secondBeat = false;      // used to seed rate array so we startup with reasonable BPM
+
+hw_timer_t * timer = NULL;
+volatile SemaphoreHandle_t timerSemaphore;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 
+void sendDataToSerial();
+void serialOutput();
+void interruptSetup();
+void onTimer();
+
+
+
+void CardioCode(void *pvParameters){
+
+  interruptSetup();           
+
+  for(;;){
+
+    if (QS == true){    // A Heartbeat Was Found
+      serialOutput(); 
+      QS = false;        // reset the Quantified Self flag for next time
+    }
+
+    vTaskDelay(200);
+         
+  } 
+   
+}
 
 
 
@@ -25,6 +54,8 @@ void sendDataToSerial(char symbol, int data ){
     Serial.print(symbol);
     Serial.println(data);
   }
+
+
   
 void serialOutput(){
   if(CARDIO_DEBUG){
@@ -36,32 +67,40 @@ void serialOutput(){
   }
 }
 
-//  Decides How To OutPut BPM and IBI Data
 
 
-//  Sends Data to Pulse Sensor Processing App, Native Mac App, or Third-party Serial Readers.
+void interruptSetup() { // CHECK OUT THE Timer_Interrupt_Notes TAB FOR MORE ON INTERRUPTS
+#ifndef ESP32
+  // Initializes Timer2 to throw an interrupt every 2mS.
+  TCCR2A = 0x02;     // DISABLE PWM ON DIGITAL PINS 3 AND 11, AND GO INTO CTC MODE
+  TCCR2B = 0x06;     // DON'T FORCE COMPARE, 256 PRESCALER
+  OCR2A = 0X7C;      // SET THE TOP OF THE COUNT TO 124 FOR 500Hz SAMPLE RATE
+  TIMSK2 = 0x02;     // ENABLE INTERRUPT ON MATCH BETWEEN TIMER2 AND OCR2A
+  sei();             // MAKE SURE GLOBAL INTERRUPTS ARE ENABLED
+  // Create semaphore to inform us when the timer has fired
+#else
+  timerSemaphore = xSemaphoreCreateBinary();
 
-volatile int rate[10];                    // array to hold last ten IBI values
-volatile unsigned long sampleCounter = 0;          // used to determine pulse timing
-volatile unsigned long lastBeatTime = 0;           // used to find IBI
-volatile int P = 512;                     // used to find peak in pulse wave, seeded
-volatile int T = 512;                     // used to find trough in pulse wave, seeded
-volatile int thresh = 530;                // used to find instant moment of heart beat, seeded
-volatile int amp = 0;                   // used to hold amplitude of pulse waveform, seeded
-volatile boolean firstBeat = true;        // used to seed rate array so we startup with reasonable BPM
-volatile boolean secondBeat = false;      // used to seed rate array so we startup with reasonable BPM
+  // Use 1st timer of 4 (counted from zero).
+  // Set 80 divider for prescaler (see ESP32 Technical Reference Manual for more
+  // info).
+  timer = timerBegin(0, 80, true);
+
+  // Attach onTimer function to our timer.
+  timerAttachInterrupt(timer, &onTimer, true);
+
+  // Set alarm to call onTimer function every second (value in microseconds).
+  // Repeat the alarm (third parameter)
+  timerAlarmWrite(timer, 2000, true);
+
+  // Start an alarm
+  timerAlarmEnable(timer);
+#endif
+}
 
 
-hw_timer_t * timer = NULL;
-volatile SemaphoreHandle_t timerSemaphore;
-portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-
-
-#define ESP32  // timer interrupt code for ESP32 added by coniferconifer
-// see https://github.com/espressif/arduino-esp32/blob/master/libraries/ESP32/examples/Timer/RepeatTimer/RepeatTimer.ino
-//
+#define ESP32 
 #ifdef ESP32
-
 
 void IRAM_ATTR onTimer() {
 #else
@@ -162,65 +201,3 @@ ISR(TIMER2_COMPA_vect) {
   // It is safe to use digitalRead/Write here if you want to toggle an output
 #endif
 }// end isr
-
-void interruptSetup() { // CHECK OUT THE Timer_Interrupt_Notes TAB FOR MORE ON INTERRUPTS
-#ifndef ESP32
-  // Initializes Timer2 to throw an interrupt every 2mS.
-  TCCR2A = 0x02;     // DISABLE PWM ON DIGITAL PINS 3 AND 11, AND GO INTO CTC MODE
-  TCCR2B = 0x06;     // DON'T FORCE COMPARE, 256 PRESCALER
-  OCR2A = 0X7C;      // SET THE TOP OF THE COUNT TO 124 FOR 500Hz SAMPLE RATE
-  TIMSK2 = 0x02;     // ENABLE INTERRUPT ON MATCH BETWEEN TIMER2 AND OCR2A
-  sei();             // MAKE SURE GLOBAL INTERRUPTS ARE ENABLED
-  // Create semaphore to inform us when the timer has fired
-#else
-  timerSemaphore = xSemaphoreCreateBinary();
-
-  // Use 1st timer of 4 (counted from zero).
-  // Set 80 divider for prescaler (see ESP32 Technical Reference Manual for more
-  // info).
-  timer = timerBegin(0, 80, true);
-
-  // Attach onTimer function to our timer.
-  timerAttachInterrupt(timer, &onTimer, true);
-
-  // Set alarm to call onTimer function every second (value in microseconds).
-  // Repeat the alarm (third parameter)
-  timerAlarmWrite(timer, 2000, true);
-
-  // Start an alarm
-  timerAlarmEnable(timer);
-#endif
-}
-
-
-
-
-
-
-
-
-
-
-
-void CardioCode(void *pvParameters){
-
-  interruptSetup();                 // sets up to read Pulse Sensor signal every 2mS
-  // IF YOU ARE POWERING The Pulse Sensor AT VOLTAGE LESS THAN THE BOARD VOLTAGE,
-  // UN-COMMENT THE NEXT LINE AND APPLY THAT VOLTAGE TO THE A-REF PIN
-  //   analogReference(EXTERNAL);
-
-
-  for(;;){
-    ;
-
-  if (QS == true) {    // A Heartbeat Was Found
-    serialOutput();
-  
-    // BPM and IBI have been Determined
-    // Quantified Self "QS" true when arduino finds a heartbeat    // Set 'fadeRate' Variable to 255 to fade LED with pulse
-    QS = false;                      // reset the Quantified Self flag for next time
-  }
-
-  vTaskDelay(20);      
-  }
-}
