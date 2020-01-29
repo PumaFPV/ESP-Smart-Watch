@@ -1,3 +1,16 @@
+/*  Tiny GPS library commands
+ * Number of sattelites: gps.satellites.value() gps.satellites.isValid()
+ * Latitude:  gps.location.lat()  gps.location.isValid()
+ * Longitude: gps.location.lat()  
+ * Altitude: gps.altitude.meters()  gps.altitude.isValid
+ * Speed: gps.speed.kmph()  gps.speed.isValid()
+ * Distance between:TinyGPS::distanceBetween(lat1, lng1, lat2, lng2)
+ * Date: gps.date
+ * Time: gps.time
+ * 
+ */
+
+
 void smartDelay();
 static void printFloat(float val, bool valid, int len, int prec);
 static void printInt(unsigned long val, bool valid, int len);

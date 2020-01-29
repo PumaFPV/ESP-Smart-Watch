@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>KML Minimal</name>
+    <open>1</open>
+    <description>This is a test file for minimal kml file</description>
+    <Style id="Flying">
+      <LineStyle>
+        <color>501400FF</color>
+        <width>4</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>501400FF</color>
+      </PolyStyle>
+    </Style>
+    <Style id="Running">
+      <LineStyle>
+        <color>5000FF14</color>
+        <width>4</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>5000FF14</color>
+      </PolyStyle>
+    </Style>	
+ <Folder>
+      <name>Entrainement</name>
+      <visibility>1</visibility>
+      <description>Entrainement du jour en hikefly</description>
+
+	  <Placemark>
+		<name>Running</name>
+		<visibility>1</visibility>
+		<styleUrl>#Running</styleUrl>
+		<LineString>
+			<coordinates>
+				45.919205,6.150564,505
+				45.919205,6.150564,505
+				45.919205,6.150564,505
+				45.919205,6.150564,505
+				45.919205,6.150564,505
+				45.919205,6.150564,505
+				45.919205,6.150564,505
+				45.919216,6.150599,505
+				45.919216,6.150600,505
+				45.919212,6.150601,505
+				45.919212,6.150602,505
+				45.919212,6.150603,505
+			</coordinates>
+		</LineString>
+	</Placemark>
+    </Folder>
+  </Document>
+</kml>
