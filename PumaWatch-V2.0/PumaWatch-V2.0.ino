@@ -1,7 +1,7 @@
 #define VARIO_PWR false     //Turn on vario code
 #define VARIO_DEBUG false  //Turn on Vario serial output
-#define CARDIO_DEBUG false //Turn on Cardio serial output
-#define GPS_DEBUG true    //Turn on GPS serial output
+#define CARDIO_DEBUG true //Turn on Cardio serial output
+#define GPS_DEBUG false    //Turn on GPS serial output
 
 
 
