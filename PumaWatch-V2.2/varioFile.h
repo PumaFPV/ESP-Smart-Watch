@@ -28,8 +28,7 @@ void setupVario(){
 
  
 void loopVario(){//------------------------------------loop
-
-   if(VARIO_PWR){
+  
     baro.read();
     float estimated_altitude = Baro.updateEstimate(baro.alti);
 
@@ -41,14 +40,14 @@ void loopVario(){//------------------------------------loop
     VarioTime = constrain(map(estimated_Vario, MIN_VARIO, MAX_VARIO, MIN_FREQ, MAX_TIME), 0, 2000);
 
     if((estimated_Vario < MIN_SCHRESHOLD || MAX_SCHRESHOLD < estimated_Vario) && VARIO_BEEP){
-      tone(BUZZER_PIN, VarioFreq, VarioTime, 0);
+      //tone(BUZZER_PIN, VarioFreq, VarioTime, 0);
       noTone(BUZZER_PIN);  
     }
       
     if(VARIO_DEBUG){
-      Serial.print(baro.alti);
+      //Serial.print(baro.alti);
       Serial.print("  ");
-      Serial.print(estimated_altitude);
+      //Serial.print(estimated_altitude);
       Serial.print("  ");
       Serial.print(estimated_Vario/100);
       Serial.print("  ");
@@ -57,7 +56,7 @@ void loopVario(){//------------------------------------loop
       //Serial.print(VarioTime);
       Serial.println();     
     }
-  }
+}
 
-  }
+
   
