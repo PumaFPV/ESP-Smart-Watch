@@ -43,8 +43,7 @@ void loopCardio(){
       QS = false;        // reset the Quantified Self flag for next time
     }
 
-    delay(200);
-         
+   
   } 
    
 
