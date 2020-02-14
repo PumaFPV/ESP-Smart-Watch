@@ -1,3 +1,6 @@
+// #########################################################################
+// GPS file
+// #########################################################################
 /*  Tiny GPS library commands
  * Number of sattelites: gps.satellites.value() gps.satellites.isValid()
  * Latitude:  gps.location.lat()  gps.location.isValid()
@@ -11,15 +14,29 @@
  */
 
 
-void smartDelay();
+
+// #########################################################################
+// Initialise GPS variables
+// #########################################################################
+float ARGENTIERE_LAT = 45.974567, ARGENTIERE_LON = 06.920673;
+
+
+
+// #########################################################################
+// Initialise GPS void
+// #########################################################################
+static void smartDelay(unsigned long ms);
 static void printFloat(float val, bool valid, int len, int prec);
 static void printInt(unsigned long val, bool valid, int len);
 static void printStr(const char *str, int len);
 static void printDateTime(TinyGPSDate &d, TinyGPSTime &t);
 
 
-
+// #########################################################################
+// setup GPS
+// #########################################################################
 void setupGPS(){
+  
   Serial2.begin(9600);
 
   if(GPS_DEBUG){
@@ -27,11 +44,16 @@ void setupGPS(){
     Serial.println(F("           (deg)      (deg)       Age                      Age  (m)    --- from GPS ----  ---- to London  ----  RX    RX        Fail"));
     Serial.println(F("----------------------------------------------------------------------------------------------------------------------------------------"));
   }
+  
 }
- 
+
+
+
+// #########################################################################
+// loop GPS
+// #########################################################################
 void loopGPS(){
     
-    static const double LONDON_LAT = 51.508131, LONDON_LON = -0.128002;
   if(GPS_DEBUG){
     printInt(gps.satellites.value(), gps.satellites.isValid(), 5);
     printFloat(gps.hdop.hdop(), gps.hdop.isValid(), 6, 1);
@@ -48,16 +70,16 @@ void loopGPS(){
       (unsigned long)TinyGPSPlus::distanceBetween(
         gps.location.lat(),
         gps.location.lng(),
-        LONDON_LAT, 
-        LONDON_LON) / 1000;
+        ARGENTIERE_LAT, 
+        ARGENTIERE_LON) / 1000;
     printInt(distanceKmToLondon, gps.location.isValid(), 9);
 
     double courseToLondon =
       TinyGPSPlus::courseTo(
         gps.location.lat(),
         gps.location.lng(),
-        LONDON_LAT, 
-        LONDON_LON);
+        ARGENTIERE_LAT, 
+        ARGENTIERE_LON);
 
     printFloat(courseToLondon, gps.location.isValid(), 7, 2);
 
@@ -69,34 +91,40 @@ void loopGPS(){
     printInt(gps.sentencesWithFix(), true, 10);
     printInt(gps.failedChecksum(), true, 9);
     Serial.println();
+    
+    smartDelay(1000);
+    
   }
-  
-  delay(1000);
 
 }
   
 
 
-
-
+// #########################################################################
+// Smart delay
+// #########################################################################
 static void smartDelay(unsigned long ms){
+  
   unsigned long start = millis();
-  do 
-  {
+  
+  do{
     while (Serial2.available())
       gps.encode(Serial2.read());
   } while (millis() - start < ms);
 }
 
+
+
+// #########################################################################
+// print float
+// #########################################################################
 static void printFloat(float val, bool valid, int len, int prec){
-  if (!valid)
-  {
+  
+  if (!valid){
     while (len-- > 1)
       Serial.print('*');
     Serial.print(' ');
-  }
-  else
-  {
+  }else{
     Serial.print(val, prec);
     int vi = abs((int)val);
     int flen = prec + (val < 0.0 ? 2 : 1); // . and -
@@ -104,11 +132,20 @@ static void printFloat(float val, bool valid, int len, int prec){
     for (int i=flen; i<len; ++i)
       Serial.print(' ');
   }
+  
   smartDelay(0);
+  
 }
 
+
+
+// #########################################################################
+// Print int
+// #########################################################################
 static void printInt(unsigned long val, bool valid, int len){
+  
   char sz[32] = "*****************";
+  
   if (valid)
     sprintf(sz, "%ld", val);
   sz[len] = 0;
@@ -118,13 +155,19 @@ static void printInt(unsigned long val, bool valid, int len){
     sz[len-1] = ' ';
   Serial.print(sz);
   smartDelay(0);
+  
 }
 
+
+
+// #########################################################################
+// print DateTime
+// #########################################################################
 static void printDateTime(TinyGPSDate &d, TinyGPSTime &t){  
+  
   if (!d.isValid()){
     Serial.print(F("********** "));
-  }
-  else{
+  }else{
     char sz[32];
     sprintf(sz, "%02d/%02d/%02d ", d.month(), d.day(), d.year());
     Serial.print(sz);
@@ -132,8 +175,7 @@ static void printDateTime(TinyGPSDate &d, TinyGPSTime &t){
   
   if (!t.isValid()){
     Serial.print(F("******** "));
-  }
-  else{
+  }else{
     char sz[32];
     sprintf(sz, "%02d:%02d:%02d ", t.hour(), t.minute(), t.second());
     Serial.print(sz);
@@ -141,11 +183,20 @@ static void printDateTime(TinyGPSDate &d, TinyGPSTime &t){
 
   printInt(d.age(), d.isValid(), 5);
   smartDelay(0);
+  
 }
 
+
+
+// #########################################################################
+// Print string
+// #########################################################################
 static void printStr(const char *str, int len){
+  
   int slen = strlen(str);
+  
   for (int i=0; i<len; ++i)
     Serial.print(i<slen ? str[i] : ' ');
   smartDelay(0);
+
 }

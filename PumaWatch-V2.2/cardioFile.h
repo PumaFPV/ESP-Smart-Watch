@@ -1,8 +1,18 @@
-#define ESP32
+// #########################################################################
+// Cardio file
+// #########################################################################
+/*Cardio variables:
+ * BPM : outputs current BPM
+ * 
+ */
 
+
+
+// #########################################################################
+// Initialise cardio variables
+// #########################################################################
 int pulsePin = 34;                 // Pulse Sensor purple wire connected to analog pin 34 , ADC6
 
-// Volatile Variables, used in the interrupt service routine!
 volatile int BPM;                   // int that holds raw Analog in 0. updated every 2mS
 volatile int Signal;                // holds the incoming raw data
 volatile int IBI = 600;             // int that holds the time interval between beats! Must be seeded!
@@ -24,38 +34,74 @@ volatile SemaphoreHandle_t timerSemaphore;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 
+
+// #########################################################################
+// Initialise Cardio voids
+// #########################################################################
 void sendDataToSerial();
 void serialOutput();
 void interruptSetup();
 void onTimer();
+void displayCardio();
 
 
 
+// ####################################################################################################################################################
+// Cardio voids
+// ####################################################################################################################################################
+
+
+
+// #########################################################################
+// Cardio setup
+// #########################################################################
 void setupCardio(){
 
-  interruptSetup();           
+  interruptSetup();   
+          
 }
 
+
+
+// #########################################################################
+// Cardio loop
+// #########################################################################
 void loopCardio(){
 
-    if (QS == true){    // A Heartbeat Was Found
-      serialOutput(); 
-      QS = false;        // reset the Quantified Self flag for next time
-    }
+  if (QS == true){    // A Heartbeat Was Found
+    serialOutput(); 
+    QS = false;        // reset the Quantified Self flag for next time
+  }
 
-   
-  } 
-   
+  displayCardio();
+
+} 
 
 
 
+// #########################################################################
+// Cardio display
+// #########################################################################
+void displayCardio(){
+  int cardioOut = map(BPM, 0, 230, 0, 360);
+  tft.fillCircle(120, 120, 120, brightness(TFT_WHITE, 50));
+  roundedArc(120, 120, 120, 10, 0, cardioOut, TFT_RED);
+}
+
+
+
+// #########################################################################
+// Cardio send data to serial
+// #########################################################################
 void sendDataToSerial(char symbol, int data ){
     Serial.print(symbol);
     Serial.println(data);
-  }
+}
 
 
-  
+// #########################################################################
+// Cardio Serial output for debug
+// #########################################################################  
 void serialOutput(){
   if(CARDIO_DEBUG){
       Serial.print(BPM);
@@ -68,6 +114,9 @@ void serialOutput(){
 
 
 
+// #########################################################################
+// Cardio interrupt setup
+// #########################################################################
 void interruptSetup() { // CHECK OUT THE Timer_Interrupt_Notes TAB FOR MORE ON INTERRUPTS
 #ifndef ESP32
   // Initializes Timer2 to throw an interrupt every 2mS.
@@ -98,6 +147,10 @@ void interruptSetup() { // CHECK OUT THE Timer_Interrupt_Notes TAB FOR MORE ON I
 }
 
 
+
+// #########################################################################
+// Cardio timer setup
+// #########################################################################
 #define ESP32 
 #ifdef ESP32
 
