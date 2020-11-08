@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include <Tone32.h>
+//#include <Tone32.h>
 #include <BMP180.h>
 #include <SimpleKalmanFilter.h>
 
@@ -8,7 +8,7 @@ SimpleKalmanFilter Baro(0.1, 0.02, 0.01);
 SimpleKalmanFilter Vario(0.1, 0.02, 0.01);
 
 #define VARIO_PWR true
-#define BUZZER_PIN 33
+#define BUZZER_PIN 2
 #define DEBUG_VARIO true
 #define VARIO_BEEP true
 #define MIN_SCHRESHOLD -90  //in cm
@@ -30,8 +30,8 @@ void setup() {
   Serial.begin(115200);
   baro.begin();
 
-  tone(BUZZER_PIN, 440, 1000, 0);
-  tone(BUZZER_PIN, 880, 500, 0);
+  tone(BUZZER_PIN, 440, 1000);
+  tone(BUZZER_PIN, 880, 500);
   noTone(BUZZER_PIN);
 
 }
@@ -49,7 +49,7 @@ void loop(){
     VarioTime = constrain(map(estimated_Vario, MIN_VARIO, MAX_VARIO, MIN_FREQ, MAX_TIME), 0, 2000);
 
     if((estimated_Vario < MIN_SCHRESHOLD || MAX_SCHRESHOLD < estimated_Vario) && VARIO_BEEP){
-      tone(BUZZER_PIN, VarioFreq, VarioTime, 0);
+      tone(BUZZER_PIN, VarioFreq, VarioTime);
       noTone(BUZZER_PIN);  
     }
       
